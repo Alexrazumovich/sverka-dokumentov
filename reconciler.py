@@ -146,13 +146,14 @@ def _parse_dates(series: pd.Series) -> pd.Series:
     return series.apply(parse_one)
 
 
-def load_df(file_bytes: bytes, date_col: str, amount_col: str, has_header: bool = True) -> pd.DataFrame:
+def load_df(file_bytes: bytes, date_col: str, amount_col: str, has_header: bool = True, lang: str = "ru") -> pd.DataFrame:
+    col_prefix = "Column" if lang == "en" else "Колонка"
     if has_header:
         df = pd.read_excel(io.BytesIO(file_bytes))
         df.columns = [str(c) for c in df.columns]
     else:
         df = pd.read_excel(io.BytesIO(file_bytes), header=None)
-        df.columns = [f"Колонка {i + 1}" for i in range(len(df.columns))]
+        df.columns = [f"{col_prefix} {i + 1}" for i in range(len(df.columns))]
 
     missing = [c for c in (date_col, amount_col) if c not in df.columns]
     if missing:
@@ -305,8 +306,8 @@ def reconcile_files(
     workday = (str(date_tolerance).strip() == "workday")
     tol = -1 if workday else int(date_tolerance)
 
-    df_a = load_df(bytes_a, date_col_a, amount_col_a, has_header_a)
-    df_b = load_df(bytes_b, date_col_b, amount_col_b, has_header_b)
+    df_a = load_df(bytes_a, date_col_a, amount_col_a, has_header_a, lang)
+    df_b = load_df(bytes_b, date_col_b, amount_col_b, has_header_b, lang)
 
     if df_a.empty:
         raise ValueError("Файл А не содержит данных после парсинга")

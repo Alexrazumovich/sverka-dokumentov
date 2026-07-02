@@ -123,6 +123,7 @@ $("btn-preview").addEventListener("click", async () => {
   fd.append("file_b",       fileB);
   fd.append("has_header_a", hasHeaderA ? "true" : "false");
   fd.append("has_header_b", hasHeaderB ? "true" : "false");
+  fd.append("lang",         _lang);
 
   try {
     const res  = await fetch("/api/preview", { method: "POST", body: fd });

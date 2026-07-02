@@ -28,13 +28,14 @@ async def no_cache(request, call_next):
     return response
 
 
-def _read_columns(content: bytes, has_header: bool) -> list[str]:
+def _read_columns(content: bytes, has_header: bool, lang: str = "ru") -> list[str]:
+    col_prefix = "Column" if lang == "en" else "Колонка"
     if has_header:
         df = pd.read_excel(io.BytesIO(content), nrows=0)
         return [str(c) for c in df.columns]
     else:
         df = pd.read_excel(io.BytesIO(content), header=None, nrows=1)
-        return [f"Колонка {i + 1}" for i in range(len(df.columns))]
+        return [f"{col_prefix} {i + 1}" for i in range(len(df.columns))]
 
 
 @app.get("/")
@@ -63,12 +64,14 @@ async def preview(
     file_b: UploadFile = File(...),
     has_header_a: str = Form("true"),
     has_header_b: str = Form("true"),
+    lang: str = Form("ru"),
 ):
     try:
         content_a = await file_a.read()
         content_b = await file_b.read()
-        cols_a = _read_columns(content_a, has_header_a.lower() != "false")
-        cols_b = _read_columns(content_b, has_header_b.lower() != "false")
+        _lang = lang if lang in ("ru", "en") else "ru"
+        cols_a = _read_columns(content_a, has_header_a.lower() != "false", _lang)
+        cols_b = _read_columns(content_b, has_header_b.lower() != "false", _lang)
         return {
             "columns_a": cols_a,
             "columns_b": cols_b,
