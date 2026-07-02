@@ -90,6 +90,7 @@ async def reconcile(
     date_tolerance: str = Form("0"),
     has_header_a:   str = Form("true"),
     has_header_b:   str = Form("true"),
+    lang:           str = Form("ru"),
 ):
     try:
         content_a = await file_a.read()
@@ -101,6 +102,7 @@ async def reconcile(
             date_tolerance,
             has_header_a.lower() != "false",
             has_header_b.lower() != "false",
+            lang if lang in ("ru", "en") else "ru",
         )
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

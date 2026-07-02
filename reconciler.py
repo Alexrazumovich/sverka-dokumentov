@@ -22,13 +22,71 @@ FONT_SMALL  = Font(size=9)
 MAX_GROUP_SIZE = 5
 MAX_CANDIDATES = 20
 
-STATUS = {
-    "exact":     "Совпадение",
-    "tolerance": "Совпадение (дата ±{} дн.)",
-    "group_a":   "Группа А→Б",
-    "group_b":   "Группа Б→А",
-    "unm_a":     "Только в А",
-    "unm_b":     "Только в Б",
+EXCEL_STRINGS = {
+    "ru": {
+        "sheet":      "Сверка",
+        "title":      "ИТОГ СВЕРКИ",
+        "total_a":    "Итого сумма А:",
+        "total_b":    "Итого сумма Б:",
+        "diff":       "Разница итогов:",
+        "rows_a":     "Строк в А:",
+        "rows_b":     "Строк в Б:",
+        "pairs":      "Совпавших пар:",
+        "unm_a_lbl":  "Расхождений А:",
+        "unm_b_lbl":  "Расхождений Б:",
+        "legend":     "Легенда:",
+        "leg_exact":  "Точное совпадение",
+        "leg_tol":    "По дате{}",
+        "leg_group":  "Групповое совпадение",
+        "leg_disc":   "Расхождение",
+        "col_date_a": "Дата А",
+        "col_amt_a":  "Сумма А",
+        "col_date_b": "Дата Б",
+        "col_amt_b":  "Сумма Б",
+        "col_status": "Статус",
+        "sec_match":  "▼ СОВПАДЕНИЯ",
+        "sec_disc":   "▼ РАСХОЖДЕНИЯ",
+        "tol_wday":   " (раб. день)",
+        "tol_days":   " (±{} дн.)",
+        "st_exact":   "Совпадение",
+        "st_tol":     "Совпадение (дата ±{} дн.)",
+        "st_group_a": "Группа А→Б",
+        "st_group_b": "Группа Б→А",
+        "st_unm_a":   "Только в А",
+        "st_unm_b":   "Только в Б",
+    },
+    "en": {
+        "sheet":      "Reconciliation",
+        "title":      "RECONCILIATION SUMMARY",
+        "total_a":    "Total amount A:",
+        "total_b":    "Total amount B:",
+        "diff":       "Total difference:",
+        "rows_a":     "Rows in A:",
+        "rows_b":     "Rows in B:",
+        "pairs":      "Matched pairs:",
+        "unm_a_lbl":  "Discrepancies A:",
+        "unm_b_lbl":  "Discrepancies B:",
+        "legend":     "Legend:",
+        "leg_exact":  "Exact match",
+        "leg_tol":    "By date{}",
+        "leg_group":  "Group match",
+        "leg_disc":   "Discrepancy",
+        "col_date_a": "Date A",
+        "col_amt_a":  "Amount A",
+        "col_date_b": "Date B",
+        "col_amt_b":  "Amount B",
+        "col_status": "Status",
+        "sec_match":  "▼ MATCHES",
+        "sec_disc":   "▼ DISCREPANCIES",
+        "tol_wday":   " (workday)",
+        "tol_days":   " (±{} d.)",
+        "st_exact":   "Match",
+        "st_tol":     "Match (date ±{} d.)",
+        "st_group_a": "Group A→B",
+        "st_group_b": "Group B→A",
+        "st_unm_a":   "Only in A",
+        "st_unm_b":   "Only in B",
+    },
 }
 
 
@@ -242,6 +300,7 @@ def reconcile_files(
     date_tolerance: str,
     has_header_a: bool = True,
     has_header_b: bool = True,
+    lang: str = "ru",
 ) -> tuple[bytes, dict]:
     workday = (str(date_tolerance).strip() == "workday")
     tol = -1 if workday else int(date_tolerance)
@@ -282,18 +341,19 @@ def reconcile_files(
         "workday":     workday,
     }
 
-    wb = _build_excel(df_a, df_b, pairs, unm_a, unm_b, summary, tol)
+    s  = EXCEL_STRINGS.get(lang, EXCEL_STRINGS["ru"])
+    wb = _build_excel(df_a, df_b, pairs, unm_a, unm_b, summary, tol, s)
     out = io.BytesIO()
     wb.save(out)
     return out.getvalue(), summary
 
 
-def _build_excel(df_a, df_b, pairs, unm_a, unm_b, summary, tol):
+def _build_excel(df_a, df_b, pairs, unm_a, unm_b, summary, tol, s: dict):
     wb = Workbook()
     ws = wb.active
-    ws.title = "Сверка"
+    ws.title = s["sheet"]
 
-    tol_label = " (раб. день)" if tol == -1 else (f" (±{tol} дн.)" if tol else "")
+    tol_label = s["tol_wday"] if tol == -1 else (s["tol_days"].format(tol) if tol else "")
 
     def sc(row, col, val, **kw):
         c = ws.cell(row, col, val)
@@ -302,66 +362,59 @@ def _build_excel(df_a, df_b, pairs, unm_a, unm_b, summary, tol):
         return c
 
     # ── Summary ──────────────────────────────────────────────────
-    ws.append(["ИТОГ СВЕРКИ"])
+    ws.append([s["title"]])
     r = ws.max_row
-    sc(r, 1, "ИТОГ СВЕРКИ", font=Font(bold=True, size=13), fill=FILL_BLUE)
+    sc(r, 1, s["title"], font=Font(bold=True, size=13), fill=FILL_BLUE)
     for col in range(2, 6):
         ws.cell(r, col).fill = FILL_BLUE
 
     fmt = "#,##0.00"
-    ws.append(["Итого сумма А:", summary["total_a"], "", "Итого сумма Б:", summary["total_b"]])
+    ws.append([s["total_a"], summary["total_a"], "", s["total_b"], summary["total_b"]])
     r = ws.max_row
-    sc(r, 1, "Итого сумма А:", font=FONT_BOLD); ws.cell(r, 2).number_format = fmt
-    sc(r, 4, "Итого сумма Б:", font=FONT_BOLD); ws.cell(r, 5).number_format = fmt
+    sc(r, 1, s["total_a"], font=FONT_BOLD); ws.cell(r, 2).number_format = fmt
+    sc(r, 4, s["total_b"], font=FONT_BOLD); ws.cell(r, 5).number_format = fmt
 
     diff = summary["diff"]
-    ws.append(["Разница итогов:", diff])
+    ws.append([s["diff"], diff])
     r = ws.max_row
-    sc(r, 1, "Разница итогов:", font=FONT_BOLD); ws.cell(r, 2).number_format = fmt
+    sc(r, 1, s["diff"], font=FONT_BOLD); ws.cell(r, 2).number_format = fmt
     if abs(diff) > 0.005:
         ws.cell(r, 2).fill = FILL_RED
 
-    ws.append(["Строк в А:", summary["rows_a"], "", "Строк в Б:", summary["rows_b"]])
+    ws.append([s["rows_a"], summary["rows_a"], "", s["rows_b"], summary["rows_b"]])
     r = ws.max_row
-    sc(r, 1, "Строк в А:", font=FONT_BOLD); sc(r, 4, "Строк в Б:", font=FONT_BOLD)
+    sc(r, 1, s["rows_a"], font=FONT_BOLD); sc(r, 4, s["rows_b"], font=FONT_BOLD)
 
     ws.append([
-        "Совпавших пар:", summary["total_pairs"], "",
-        "Расхождений А:", summary["unmatched_a"],
-        "Расхождений Б:", summary["unmatched_b"],
+        s["pairs"], summary["total_pairs"], "",
+        s["unm_a_lbl"], summary["unmatched_a"],
+        s["unm_b_lbl"], summary["unmatched_b"],
     ])
     r = ws.max_row
-    sc(r, 1, "Совпавших пар:", font=FONT_BOLD)
-    sc(r, 4, "Расхождений А:", font=FONT_BOLD)
-    sc(r, 6, "Расхождений Б:", font=FONT_BOLD)
+    sc(r, 1, s["pairs"],     font=FONT_BOLD)
+    sc(r, 4, s["unm_a_lbl"], font=FONT_BOLD)
+    sc(r, 6, s["unm_b_lbl"], font=FONT_BOLD)
     if summary["unmatched_a"]: ws.cell(r, 5).fill = FILL_RED
     if summary["unmatched_b"]: ws.cell(r, 7).fill = FILL_RED
 
     ws.append([])
 
     # ── Legend ───────────────────────────────────────────────────
-    ws.append(["Легенда:"])
-    sc(ws.max_row, 1, "Легенда:", font=FONT_BOLD)
-    for col, (fill, label) in enumerate([
-        (FILL_GREEN,  "Точное совпадение"),
-        (FILL_YELLOW, f"По дате{tol_label}"),
-        (FILL_ORANGE, "Групповое совпадение"),
-        (FILL_RED,    "Расхождение"),
-    ], 1):
-        c = ws.cell(ws.max_row + 0, col, label)  # same row as "Легенда" +1 below
+    ws.append([s["legend"]])
+    sc(ws.max_row, 1, s["legend"], font=FONT_BOLD)
     lr = ws.max_row + 1
     for col, (fill, label) in enumerate([
-        (FILL_GREEN,  "Точное совпадение"),
-        (FILL_YELLOW, f"По дате{tol_label}"),
-        (FILL_ORANGE, "Групповое совпадение"),
-        (FILL_RED,    "Расхождение"),
+        (FILL_GREEN,  s["leg_exact"]),
+        (FILL_YELLOW, s["leg_tol"].format(tol_label)),
+        (FILL_ORANGE, s["leg_group"]),
+        (FILL_RED,    s["leg_disc"]),
     ], 1):
         c = ws.cell(lr, col, label)
         c.fill = fill; c.font = FONT_SMALL
     ws.append([])
 
     # ── Data header ──────────────────────────────────────────────
-    ws.append(["Дата А", "Сумма А", "Дата Б", "Сумма Б", "Статус"])
+    ws.append([s["col_date_a"], s["col_amt_a"], s["col_date_b"], s["col_amt_b"], s["col_status"]])
     hdr_row = ws.max_row
     for col in range(1, 6):
         c = ws.cell(hdr_row, col)
@@ -400,11 +453,18 @@ def _build_excel(df_a, df_b, pairs, unm_a, unm_b, summary, tol):
     }
 
     # ── Matched pairs ────────────────────────────────────────────
-    section_header("▼ СОВПАДЕНИЯ", FILL_SECTION)
+    section_header(s["sec_match"], FILL_SECTION)
     for p in sorted(pairs, key=lambda p: _pair_min_date(p, df_a, df_b)):
         a_idxs, b_idxs, ptype = p["a"], p["b"], p["type"]
-        fill  = FILLS[ptype]
-        label = STATUS["tolerance"].format(tol) if ptype == "tolerance" else STATUS[ptype]
+        fill = FILLS[ptype]
+        if ptype == "tolerance":
+            label = s["st_tol"].format(tol)
+        elif ptype == "group_a":
+            label = s["st_group_a"]
+        elif ptype == "group_b":
+            label = s["st_group_b"]
+        else:
+            label = s["st_exact"]
         for k in range(max(len(a_idxs), len(b_idxs))):
             i = a_idxs[k] if k < len(a_idxs) else None
             j = b_idxs[k] if k < len(b_idxs) else None
@@ -421,7 +481,7 @@ def _build_excel(df_a, df_b, pairs, unm_a, unm_b, summary, tol):
     # ── Unmatched (interleaved by date) ──────────────────────────
     if unm_a or unm_b:
         ws.append([])
-        section_header("▼ РАСХОЖДЕНИЯ", FILL_RED)
+        section_header(s["sec_disc"], FILL_RED)
         unmatched_all = (
             [("a", i, df_a.at[i, "date"]) for i in unm_a] +
             [("b", j, df_b.at[j, "date"]) for j in unm_b]
@@ -430,13 +490,13 @@ def _build_excel(df_a, df_b, pairs, unm_a, unm_b, summary, tol):
             if which == "a":
                 write_row(
                     df_a.at[idx, "date"].strftime("%d.%m.%Y"), df_a.at[idx, "amount"],
-                    None, None, STATUS["unm_a"], FILL_RED,
+                    None, None, s["st_unm_a"], FILL_RED,
                 )
             else:
                 write_row(
                     None, None,
                     df_b.at[idx, "date"].strftime("%d.%m.%Y"), df_b.at[idx, "amount"],
-                    STATUS["unm_b"], FILL_RED,
+                    s["st_unm_b"], FILL_RED,
                 )
 
     # ── Column widths ─────────────────────────────────────────────

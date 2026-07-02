@@ -189,6 +189,7 @@ $("btn-reconcile").addEventListener("click", async () => {
   fd.append("date_tolerance", tol);
   fd.append("has_header_a",   hasHeaderA ? "true" : "false");
   fd.append("has_header_b",   hasHeaderB ? "true" : "false");
+  fd.append("lang",           _lang);
 
   try {
     const res  = await fetch("/api/reconcile", { method: "POST", body: fd });
