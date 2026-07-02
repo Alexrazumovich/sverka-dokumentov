@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Сверка документов</title>
+  <link rel="stylesheet" href="/static/style.css?v=10">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Сверка документов</h1>
+    <p class="subtitle">Автоматическое сопоставление двух таблиц по дате и сумме</p>
+  </header>
+
+  <!-- Шаг 1: загрузка файлов -->
+  <section id="step-upload" class="step">
+    <h2><span class="step-num">1</span> Загрузите файлы</h2>
+    <div class="upload-row">
+
+      <div class="upload-col">
+        <label class="drop-zone" id="drop-a">
+          <input type="file" id="input-a" accept=".xlsx,.xls" class="drop-file-input">
+          <div class="drop-icon">📄</div>
+          <div class="drop-label">Файл А</div>
+          <div class="drop-hint">Перетащите .xlsx/.xls или нажмите</div>
+          <div class="file-name" id="name-a"></div>
+        </label>
+        <label class="no-header-label">
+          <input type="checkbox" id="no-header-a">
+          Первая строка — данные (нет заголовка)
+        </label>
+      </div>
+
+      <div class="upload-col">
+        <label class="drop-zone" id="drop-b">
+          <input type="file" id="input-b" accept=".xlsx,.xls" class="drop-file-input">
+          <div class="drop-icon">📄</div>
+          <div class="drop-label">Файл Б</div>
+          <div class="drop-hint">Перетащите .xlsx/.xls или нажмите</div>
+          <div class="file-name" id="name-b"></div>
+        </label>
+        <label class="no-header-label">
+          <input type="checkbox" id="no-header-b">
+          Первая строка — данные (нет заголовка)
+        </label>
+      </div>
+
+    </div>
+    <button id="btn-preview" class="btn btn-primary" disabled>Далее →</button>
+  </section>
+
+  <!-- Шаг 2: настройка -->
+  <section id="step-columns" class="step hidden">
+    <h2><span class="step-num">2</span> Настройте колонки и точность</h2>
+    <div class="cols-row">
+      <div class="col-block">
+        <h3>Файл А: <span class="file-label" id="name-a-lbl"></span></h3>
+        <label>Дата
+          <select id="date-col-a"></select>
+        </label>
+        <label>Сумма
+          <select id="amount-col-a"></select>
+        </label>
+      </div>
+      <div class="col-block">
+        <h3>Файл Б: <span class="file-label" id="name-b-lbl"></span></h3>
+        <label>Дата
+          <select id="date-col-b"></select>
+        </label>
+        <label>Сумма
+          <select id="amount-col-b"></select>
+        </label>
+      </div>
+    </div>
+
+    <div class="tolerance-block">
+      <h3>Допуск по дате</h3>
+      <p class="hint">На сколько дней могут расходиться даты, чтобы строки всё равно считались совпадающими?</p>
+      <div class="tol-options">
+        <label class="tol-opt"><input type="radio" name="tol" value="0" checked><span>Только точные</span></label>
+        <label class="tol-opt"><input type="radio" name="tol" value="1"><span>±1 день</span></label>
+        <label class="tol-opt"><input type="radio" name="tol" value="workday"><span>±1 раб.день (пт→пн)</span></label>
+        <label class="tol-opt"><input type="radio" name="tol" value="3"><span>±3 дня</span></label>
+        <label class="tol-opt"><input type="radio" name="tol" value="7"><span>±7 дней</span></label>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button id="btn-back" class="btn btn-secondary">← Назад</button>
+      <button id="btn-reconcile" class="btn btn-primary">Выполнить сверку</button>
+    </div>
+  </section>
+
+  <!-- Загрузка -->
+  <section id="step-loading" class="step hidden">
+    <div class="spinner"></div>
+    <p id="loading-text">Обрабатываем файлы...</p>
+  </section>
+
+  <!-- Результат -->
+  <section id="step-result" class="step hidden">
+    <h2>Сверка завершена</h2>
+    <div class="summary-grid" id="summary-grid"></div>
+    <div class="legend">
+      <span class="leg green">Точное совпадение</span>
+      <span class="leg yellow">По дате (допуск)</span>
+      <span class="leg orange">Групповое совпадение</span>
+      <span class="leg red">Расхождение</span>
+    </div>
+    <div class="btn-row">
+      <button id="btn-download" class="btn btn-success">⬇ Скачать результат .xlsx</button>
+      <button id="btn-restart" class="btn btn-secondary">Новая сверка</button>
+    </div>
+  </section>
+
+  <div id="error-box" class="error-box hidden"></div>
+</div>
+
+<footer>
+  <p>Нужен инструмент под ваши задачи? Разработаю индивидуальное решение.</p>
+  <p>
+    <a href="mailto:alexrazumovich@gmail.com">alexrazumovich@gmail.com</a>
+    &nbsp;·&nbsp;
+    <a href="https://t.me/alexrazumovich" target="_blank">Telegram @alexrazumovich</a>
+  </p>
+</footer>
+<script src="/static/script.js?v=10"></script>
+</body>
+</html>

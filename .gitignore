@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+venv/
+
+# Тестовые файлы
+1.xlsx
+2.xlsx
+3м.xlsx
+4_1c.xlsx
+~$*.xlsx
+~$*.xls
+
+# Загруженные файлы и результаты (генерируются во время работы)
+uploads/
+result_reports/*.xlsx
+result_reports/*.xls
