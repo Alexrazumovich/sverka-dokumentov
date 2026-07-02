@@ -2,7 +2,7 @@
 
 Веб-сервис для автоматического сопоставления двух таблиц Excel по дате и сумме. Ориентирован на бухгалтеров и финансовых специалистов.
 
-**Живой сайт:** https://sverka-dokumentov.onrender.com/
+**Живой сайт:** https://sverka-dokumentov.onrender.com/ (RU) · https://sverka-dokumentov.onrender.com/en (EN)
 
 ---
 
@@ -21,6 +21,8 @@
 - Групповое совпадение: одна строка = сумма нескольких строк другого файла
 - Результат — цветной Excel с разделами «Совпадения» и «Расхождения»
 - Файл сохраняется в папку `result_reports/` и скачивается через браузер
+- Интерфейс на двух языках: русский (`/`) и английский (`/en`)
+- Страница инструкции для пользователя на двух языках (`/help`, `/en/help`)
 
 ---
 
@@ -71,16 +73,19 @@
 
 ```
 reconciliation/
-├── main.py               # FastAPI: /api/preview, /api/reconcile, /api/download, /
+├── main.py               # FastAPI: /, /en, /help, /en/help, /api/*
 ├── reconciler.py         # Вся логика: парсинг дат/сумм, алгоритм, формирование Excel
 ├── requirements.txt      # fastapi, uvicorn, pandas, openpyxl, xlrd, python-multipart
 ├── render.yaml           # Конфиг деплоя на Render.com
 ├── start.bat             # Быстрый запуск локально (Windows)
 ├── .gitignore            # Исключает __pycache__, тестовые xlsx, uploads/, result_reports/
 ├── static/
-│   ├── index.html        # UI (3 шага: загрузка → настройка → результат), версия ?v=10
+│   ├── index.html        # Главная страница (RU)
+│   ├── index_en.html     # Главная страница (EN)
+│   ├── help.html         # Инструкция (RU)
+│   ├── help_en.html      # Инструкция (EN)
 │   ├── style.css         # Адаптивная вёрстка, мобильный breakpoint 580px
-│   └── script.js         # Vanilla JS: drag-and-drop, fetch API, рендер summary
+│   └── script.js         # Vanilla JS: drag-and-drop, fetch API, i18n (RU/EN)
 └── result_reports/       # Сохранённые результаты (sverka_YYYYMMDD_HHMMSS_XXXXXXXX.xlsx)
 ```
 
@@ -103,6 +108,12 @@ reconciliation/
 **Ответ:** `{ summary, download_url, saved_path }`
 
 **`date_tolerance`:** `"0"` | `"1"` | `"workday"` | `"3"` | `"7"`
+
+### `GET /en`
+Английская версия главной страницы (`index_en.html`).
+
+### `GET /help`
+Страница инструкции (RU). `GET /en/help` — то же на английском.
 
 ### `GET /api/download/{token}`
 Скачивает ранее сохранённый файл. Токен валидируется regex-ом и path traversal-проверкой.
@@ -164,6 +175,7 @@ python main.py
 - **Нет сверки по контрагенту/номеру документа** — только дата + сумма; логичное следующее расширение
 - **Производительность** — алгоритм O(n²), при файлах > 5 000 строк заметно замедление; нужна индексация по дате
 - **Один пользователь** — нет авторизации; при публичном использовании все видят чужие ссылки для скачивания (токен случайный, но не защищён)
+- **Локализация i18n** — переводы хранятся в `script.js` (динамика) и в отдельных HTML-файлах (статика); при добавлении новых языков имеет смысл перейти на шаблонизатор (Jinja2)
 
 ---
 
