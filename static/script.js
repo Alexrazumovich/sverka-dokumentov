@@ -1,5 +1,44 @@
 "use strict";
 
+// LANG is set by a <script> tag in each HTML page before this file loads.
+// Russian pages set: const LANG = 'ru';
+// English pages set: const LANG = 'en';
+const _lang = (typeof LANG !== 'undefined') ? LANG : 'ru';
+
+const T = {
+  ru: {
+    onlyXlsx:      "Поддерживаются только .xlsx и .xls",
+    readingHeaders: "Читаем заголовки файлов...",
+    running:        "Выполняется сверка...",
+    errPrefix:      "Ошибка: ",
+    totalA:  n => `Итого сумма А (${n} стр.)`,
+    totalB:  n => `Итого сумма Б (${n} стр.)`,
+    diff:           "Разница итогов",
+    exact:          "Точных совпадений",
+    byDate:  w => w ? "По раб. дню (пт→пн)" : "По допуску даты",
+    group:          "Групповых совпадений",
+    pairs:          "Совпавших пар всего",
+    notInB:         "Не найдено в Б",
+    notInA:         "Не найдено в А",
+  },
+  en: {
+    onlyXlsx:      "Only .xlsx and .xls files are supported",
+    readingHeaders: "Reading file headers...",
+    running:        "Running reconciliation...",
+    errPrefix:      "Error: ",
+    totalA:  n => `Total amount A (${n} rows)`,
+    totalB:  n => `Total amount B (${n} rows)`,
+    diff:           "Total difference",
+    exact:          "Exact matches",
+    byDate:  w => w ? "By workday (Fri→Mon)" : "By date tolerance",
+    group:          "Group matches",
+    pairs:          "Total matched pairs",
+    notInB:         "Not found in B",
+    notInA:         "Not found in A",
+  },
+};
+const t = T[_lang];
+
 let fileA = null, fileB = null, downloadUrl = null;
 let hasHeaderA = true, hasHeaderB = true;
 
@@ -20,7 +59,7 @@ function showStep(name) {
 
 function showError(msg) {
   const box = $("error-box");
-  box.textContent = "Ошибка: " + msg;
+  box.textContent = t.errPrefix + msg;
   box.classList.remove("hidden");
 }
 
@@ -29,8 +68,6 @@ function showError(msg) {
 function setupZone(zoneId, inputId, which) {
   const zone  = $(zoneId);
   const input = $(inputId);
-
-  // <label> handles click → file dialog natively; no JS needed for that
 
   zone.addEventListener("dragover", e => {
     e.preventDefault();
@@ -53,7 +90,7 @@ function setupZone(zoneId, inputId, which) {
 
 function applyFile(file, which) {
   if (!/\.xlsx?$/i.test(file.name)) {
-    showError("Поддерживаются только .xlsx и .xls");
+    showError(t.onlyXlsx);
     return;
   }
   $("error-box").classList.add("hidden");
@@ -72,7 +109,6 @@ function applyFile(file, which) {
 setupZone("drop-a", "input-a", "a");
 setupZone("drop-b", "input-b", "b");
 
-// "No header" checkboxes
 $("no-header-a").addEventListener("change", e => { hasHeaderA = !e.target.checked; });
 $("no-header-b").addEventListener("change", e => { hasHeaderB = !e.target.checked; });
 
@@ -80,7 +116,7 @@ $("no-header-b").addEventListener("change", e => { hasHeaderB = !e.target.checke
 
 $("btn-preview").addEventListener("click", async () => {
   showStep("loading");
-  $("loading-text").textContent = "Читаем заголовки файлов...";
+  $("loading-text").textContent = t.readingHeaders;
 
   const fd = new FormData();
   fd.append("file_a",       fileA);
@@ -91,7 +127,7 @@ $("btn-preview").addEventListener("click", async () => {
   try {
     const res  = await fetch("/api/preview", { method: "POST", body: fd });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Неизвестная ошибка");
+    if (!res.ok) throw new Error(data.detail || "Unknown error");
 
     $("name-a-lbl").textContent = data.name_a;
     $("name-b-lbl").textContent = data.name_b;
@@ -140,7 +176,7 @@ $("btn-back").addEventListener("click", () => showStep("upload"));
 
 $("btn-reconcile").addEventListener("click", async () => {
   showStep("loading");
-  $("loading-text").textContent = "Выполняется сверка...";
+  $("loading-text").textContent = t.running;
 
   const tol = document.querySelector("input[name='tol']:checked").value;
   const fd  = new FormData();
@@ -157,7 +193,7 @@ $("btn-reconcile").addEventListener("click", async () => {
   try {
     const res  = await fetch("/api/reconcile", { method: "POST", body: fd });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Неизвестная ошибка");
+    if (!res.ok) throw new Error(data.detail || "Unknown error");
 
     downloadUrl = data.download_url;
     renderSummary(data.summary);
@@ -187,15 +223,15 @@ function renderSummary(s) {
   const unmBCls = s.unmatched_b === 0 ? "ok" : "bad";
 
   $("summary-grid").innerHTML = [
-    card(fmt(s.total_a),    `Итого сумма А (${s.rows_a} стр.)`),
-    card(fmt(s.total_b),    `Итого сумма Б (${s.rows_b} стр.)`),
-    card(fmt(s.diff),       "Разница итогов", diffCls),
-    card(s.exact,           "Точных совпадений", "ok"),
-    card(s.tolerance,       s.workday ? "По раб. дню (пт→пн)" : "По допуску даты"),
-    card(s.group,           "Групповых совпадений"),
-    card(s.total_pairs,     "Совпавших пар всего"),
-    card(s.unmatched_a,     "Не найдено в Б", unmACls),
-    card(s.unmatched_b,     "Не найдено в А", unmBCls),
+    card(fmt(s.total_a),    t.totalA(s.rows_a)),
+    card(fmt(s.total_b),    t.totalB(s.rows_b)),
+    card(fmt(s.diff),       t.diff,             diffCls),
+    card(s.exact,           t.exact,             "ok"),
+    card(s.tolerance,       t.byDate(s.workday)),
+    card(s.group,           t.group),
+    card(s.total_pairs,     t.pairs),
+    card(s.unmatched_a,     t.notInB,            unmACls),
+    card(s.unmatched_b,     t.notInA,            unmBCls),
   ].join("");
 }
 

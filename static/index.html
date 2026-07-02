@@ -4,14 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Сверка документов</title>
-  <link rel="stylesheet" href="/static/style.css?v=11">
+  <link rel="stylesheet" href="/static/style.css?v=12">
 </head>
 <body>
 <div class="container">
   <header>
     <h1>Сверка документов</h1>
     <p class="subtitle">Автоматическое сопоставление двух таблиц по дате и сумме</p>
-    <a href="/help" target="_blank" class="help-link">? Инструкция</a>
+    <div class="header-nav">
+      <div class="lang-switcher">
+        <span class="lang-active">RU</span>
+        <a href="/en">EN</a>
+      </div>
+      <a href="/help" target="_blank" class="help-link">? Инструкция</a>
+    </div>
   </header>
 
   <!-- Шаг 1: загрузка файлов -->
@@ -126,6 +132,7 @@
     <a href="https://t.me/alexrazumovich" target="_blank">Telegram @alexrazumovich</a>
   </p>
 </footer>
-<script src="/static/script.js?v=11"></script>
+<script>const LANG = 'ru';</script>
+<script src="/static/script.js?v=12"></script>
 </body>
 </html>

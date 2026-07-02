@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instructions — Document Reconciliation</title>
+  <link rel="stylesheet" href="/static/style.css?v=12">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>User Instructions</h1>
+    <p class="subtitle">Automatic matching of two tables by date and amount</p>
+    <div class="header-nav">
+      <a href="/en" class="help-back-link">← Back to reconciliation</a>
+      <div class="lang-switcher">
+        <a href="/help">RU</a>
+        <span class="lang-active">EN</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Step 1 -->
+  <section class="step help-section">
+    <h2><span class="step-num">1</span> Prepare and upload your files</h2>
+
+    <p class="help-p">The service accepts two files in <strong>.xlsx</strong> or <strong>.xls</strong> format. A typical use case is matching a bank statement against a payment register from your accounting system.</p>
+
+    <div class="help-tip">
+      <strong>What should the file contain?</strong> At least one column with dates and one with amounts. All other columns are ignored. The two files can have completely different structures — that is perfectly fine.
+    </div>
+
+    <h3 class="help-h3">How to upload</h3>
+    <ol class="help-list">
+      <li>Drag File A into the left zone, or click it and pick a file from the dialog.</li>
+      <li>Do the same for File B — the right zone.</li>
+      <li>If your file has <strong>no header row</strong> (the first row already contains data), check "First row is data".</li>
+      <li>Once both files are loaded, the <strong>"Next →"</strong> button becomes active. Click it.</li>
+    </ol>
+
+    <div class="help-tip warn">
+      File won't load? Make sure it is saved as .xlsx or .xls, not password-protected, and not currently open in Excel (close it there first to release the lock).
+    </div>
+  </section>
+
+  <!-- Step 2 -->
+  <section class="step help-section">
+    <h2><span class="step-num">2</span> Select columns and set date tolerance</h2>
+
+    <p class="help-p">The service shows the column list from each file. Select <em>which column contains the date</em> and <em>which contains the amount</em> for each file. Usually the service guesses correctly — verify and correct if needed.</p>
+
+    <h3 class="help-h3">Date tolerance</h3>
+    <p class="help-p">Tolerance defines how far apart dates can be for rows to still be considered matching (provided amounts match exactly).</p>
+
+    <table class="help-table">
+      <thead>
+        <tr><th>Mode</th><th>When to use</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Exact only</strong></td>
+          <td>Both tables contain identical dates — e.g., two statements from the same bank for the same period.</td>
+        </tr>
+        <tr>
+          <td><strong>±1 day</strong></td>
+          <td>Dates may differ by 1 calendar day — e.g., a payment was sent on the 31st but the bank credited it on the 1st.</td>
+        </tr>
+        <tr>
+          <td><strong>±1 workday (Fri→Mon)</strong></td>
+          <td>Friday and Monday count as 1 working day apart. Useful when a payment left on Friday but the bank processed it on Monday.</td>
+        </tr>
+        <tr>
+          <td><strong>±3 days</strong></td>
+          <td>Larger date discrepancies — e.g., reconciling with a slow counterparty or different accounting principles.</td>
+        </tr>
+        <tr>
+          <td><strong>±7 days</strong></td>
+          <td>Approximate weekly reconciliation: rows are considered matching if the amount is equal and dates fall within a week of each other.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="help-tip">
+      <strong>Tip:</strong> start with "Exact only". If many discrepancies remain — increase the tolerance one step at a time and observe which rows move from "Discrepancies" to "Matches".
+    </div>
+
+    <p class="help-p">Click <strong>"Run reconciliation"</strong>. Processing usually takes a few seconds.</p>
+  </section>
+
+  <!-- Step 3 -->
+  <section class="step help-section">
+    <h2><span class="step-num">3</span> Read the results and download the report</h2>
+
+    <p class="help-p">After reconciliation, a summary panel and a download button appear on screen. The actual result is a colour-coded Excel file.</p>
+
+    <h3 class="help-h3">On-screen summary</h3>
+    <p class="help-p">Nine cards with key numbers:</p>
+    <ul class="help-list">
+      <li><strong>Total amount A / B</strong> — control totals for each file.</li>
+      <li><strong>Total difference</strong> — if non-zero, shown in red. This signals that the tables do not balance overall.</li>
+      <li><strong>Exact matches</strong> — rows where both date and amount matched perfectly.</li>
+      <li><strong>By date tolerance</strong> — amounts matched, but dates differ within the chosen tolerance.</li>
+      <li><strong>Group matches</strong> — one row from one file equals the sum of several rows from the other (e.g., a payment split into parts).</li>
+      <li><strong>Not found in B / Not found in A</strong> — unmatched rows. These require manual review.</li>
+    </ul>
+
+    <h3 class="help-h3">Colour coding in the Excel file</h3>
+    <div class="legend help-legend">
+      <div class="help-legend-item">
+        <span class="leg green">Green</span>
+        <span class="help-legend-text">Exact match — date and amount matched to the penny.</span>
+      </div>
+      <div class="help-legend-item">
+        <span class="leg yellow">Yellow</span>
+        <span class="help-legend-text">Match with date tolerance — amounts are equal but dates differ slightly.</span>
+      </div>
+      <div class="help-legend-item">
+        <span class="leg orange">Orange</span>
+        <span class="help-legend-text">Group match — one row corresponds to the sum of several rows (payment split or consolidated).</span>
+      </div>
+      <div class="help-legend-item">
+        <span class="leg red">Red</span>
+        <span class="help-legend-text">Discrepancy — no matching row found. Requires manual review.</span>
+      </div>
+    </div>
+
+    <div class="help-tip">
+      In the Excel file, matches appear first (sorted by date), followed by the Discrepancies section. Pay extra attention to group matches: the rows of a group are listed one below the other, and grey rows are the "detail" lines of the group.
+    </div>
+
+    <p class="help-p">Click <strong>"Download result .xlsx"</strong> — the file will be saved to your computer. Click "New reconciliation" to start over.</p>
+  </section>
+
+  <!-- FAQ -->
+  <section class="step help-section">
+    <h2>Frequently asked questions</h2>
+
+    <div class="faq-item">
+      <div class="faq-q">All rows are red — what's wrong?</div>
+      <div class="faq-a">The most likely cause is a wrong date or amount column selected in step 2. Click "← Back" and verify your selection. Also check that the date formats in your files are supported (see below).</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">What date formats are accepted?</div>
+      <div class="faq-a">
+        The service recognises most common formats:
+        <ul class="help-list" style="margin-top: 8px;">
+          <li>Standard Excel date cells (numeric date format)</li>
+          <li><code>01.07.2025</code> — day.month.year</li>
+          <li><code>1.07</code> or <code>1.7</code> — day.month, current year assumed</li>
+          <li>Russian month names: <code>3 мар</code>, <code>03 марта</code>, <code>3 марта 2025</code></li>
+        </ul>
+        If dates are not recognised — try opening the file in Excel and formatting the date cells as "Date" (not "Text"), then save again.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">What is a "group match"?</div>
+      <div class="faq-a">This occurs when one row in File A equals the sum of several rows in File B (or vice versa). Example: the bank statement shows one payment of 15,000, but accounting has it split into three lines: 5,000 + 7,000 + 3,000. The service finds such combinations automatically (up to 5 rows per group).</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Amounts match but rows are red — why?</div>
+      <div class="faq-a">The date did not match. Try increasing the date tolerance in step 2, or check that the correct date column is selected. If dates are stored in different formats across the two files, verify that the service recognised them correctly.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Total difference is non-zero but no discrepancies are shown</div>
+      <div class="faq-a">This can happen when some rows were excluded because their dates or amounts could not be parsed. Open the source file, look for empty or non-standard cells, and correct them.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Can I reconcile files without a header row?</div>
+      <div class="faq-a">Yes. In step 1, check "First row is data" for the relevant file. Columns will be labelled "Column 1", "Column 2", etc. — pick the right ones in step 2.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Is my data safe?</div>
+      <div class="faq-a">Files are processed on the server solely to perform the reconciliation. Results are stored temporarily and are not accessible to other users via shared links (the download token is random). That said, avoid uploading files containing personal data or trade secrets — use the service at your own discretion.</div>
+    </div>
+  </section>
+
+  <div style="text-align:center; margin-bottom: 32px;">
+    <a href="/en" class="btn btn-primary" style="display:inline-block; text-decoration:none;">← Back to reconciliation</a>
+  </div>
+
+</div>
+
+<footer>
+  <p>Need a custom tool for your workflow? I'll build it for you.</p>
+  <p>
+    <a href="mailto:alexrazumovich@gmail.com">alexrazumovich@gmail.com</a>
+    &nbsp;·&nbsp;
+    <a href="https://t.me/alexrazumovich" target="_blank">Telegram @alexrazumovich</a>
+  </p>
+</footer>
+<script>
+  document.querySelectorAll(".faq-q").forEach(q => {
+    q.addEventListener("click", () => {
+      q.parentElement.classList.toggle("open");
+    });
+  });
+</script>
+</body>
+</html>

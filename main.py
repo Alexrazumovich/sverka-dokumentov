@@ -23,7 +23,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.middleware("http")
 async def no_cache(request, call_next):
     response = await call_next(request)
-    if request.url.path.startswith("/static/") or request.url.path == "/":
+    if not request.url.path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-store"
     return response
 
@@ -42,9 +42,19 @@ async def root():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
+@app.get("/en")
+async def root_en():
+    return FileResponse(os.path.join(STATIC_DIR, "index_en.html"))
+
+
 @app.get("/help")
 async def help_page():
     return FileResponse(os.path.join(STATIC_DIR, "help.html"))
+
+
+@app.get("/en/help")
+async def help_en():
+    return FileResponse(os.path.join(STATIC_DIR, "help_en.html"))
 
 
 @app.post("/api/preview")
