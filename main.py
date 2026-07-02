@@ -42,6 +42,11 @@ async def root():
     return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
+@app.get("/help")
+async def help_page():
+    return FileResponse(os.path.join(STATIC_DIR, "help.html"))
+
+
 @app.post("/api/preview")
 async def preview(
     file_a: UploadFile = File(...),
